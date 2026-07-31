@@ -144,8 +144,16 @@ def scan(lines):
         #
 
         if "loadHTMLString_" in line:
-            if any(t in window for t in UNTRUSTED):
-                add("HIGH", i, "HTML appears to originate from untrusted source")
+            window = "\n".join(
+                lines[max(0, line_number - 41): min(len(lines), line_number + 5)]
+            )
+
+            if any(token in window for token in UNTRUSTED):
+                add(
+                    "HIGH",
+                    line_number,
+                    "HTML appears to originate from untrusted source",
+                )
 
         #
         # evaluateJavaScript()
