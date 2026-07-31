@@ -3,6 +3,7 @@ scanner.py
 
 Main scanning engine for Darkelf SecureAudit.
 """
+
 import re
 import traceback
 from pathlib import Path
