@@ -3,17 +3,15 @@ scanner.py
 
 Main scanning engine for Darkelf SecureAudit.
 """
-
 import re
-from pathlib import Path
 import traceback
+from pathlib import Path
 from .ast_scanner import ast_scan
 from .rules import (
     DELEGATE_SELECTORS,
     GOOD_RULES,
     SAFE_KVC,
     TAINT_SOURCES,
-    TRUSTED,
     UNTRUSTED,
 )
 from .utils import (
