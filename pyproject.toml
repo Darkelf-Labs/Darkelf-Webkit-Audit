@@ -1,0 +1,117 @@
+[build-system]
+requires = ["setuptools>=82.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "darkelf-secureaudit"
+version = "1.0.0"
+description = "Advanced security auditing for WebKit, PyObjC, and Python applications."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "LGPL-3.0-or-later"
+
+authors = [
+    { name = "Darkelf Labs" }
+]
+
+keywords = [
+    "security",
+    "audit",
+    "static-analysis",
+    "sarif",
+    "webkit",
+    "pyobjc",
+    "python",
+    "appkit",
+    "code-scanning",
+    "cybersecurity",
+]
+
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Software Development :: Testing",
+]
+
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/Darkelf2024/darkelf-webkit-audit"
+Repository = "https://github.com/Darkelf2024/darkelf-webkit-audit"
+Issues = "https://github.com/Darkelf2024/darkelf-webkit-audit/issues"
+Documentation = "https://github.com/Darkelf2024/darkelf-webkit-audit#readme"
+
+[project.scripts]
+darkelf-secureaudit = "darkelf_secureaudit.cli:main"
+
+[project.optional-dependencies]
+dev = [
+    "build>=1.2",
+    "pytest>=8.0",
+    "ruff>=0.12",
+    "twine>=6.0",
+]
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["darkelf_secureaudit*"]
+exclude = [
+    "tests",
+    "tests.*",
+]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 88
+fix = true
+show-fixes = true
+
+exclude = [
+    ".git",
+    ".github",
+    ".venv",
+    "venv",
+    "env",
+    "build",
+    "dist",
+    "__pycache__",
+    ".pytest_cache",
+    ".mypy_cache",
+    ".ruff_cache",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "F",
+    "W",
+    "I",
+    "UP",
+    "B",
+    "SIM",
+]
+
+ignore = []
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-ra"
