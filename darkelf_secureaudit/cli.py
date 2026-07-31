@@ -12,7 +12,7 @@ from .sarif import write_sarif
 from .scanner import scan_project
 from .utils import count_high_findings
 
-BANNER = "Darkelf SecureAudit v1.0.0"
+BANNER = "Darkelf SecureAudit BUILD 2026-07-31"
 
 
 def build_parser():

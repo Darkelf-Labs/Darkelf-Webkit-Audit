@@ -6,7 +6,7 @@ Main scanning engine for Darkelf SecureAudit.
 
 import re
 from pathlib import Path
-
+import traceback
 from .ast_scanner import ast_scan
 from .rules import (
     DELEGATE_SELECTORS,
@@ -301,14 +301,12 @@ def scan_project(path):
             for severity in findings:
                 findings[severity].extend(file_findings[severity])
 
-        except Exception as exc:
-            findings["INFO"].append(
-                (
-                    0,
-                    f"Failed to scan {file}: {exc}",
-                    "LOW",
-                )
-            )
+        except Exception:
+            print("\n" + "=" * 70)
+            print(f"ERROR scanning: {file}")
+            print("=" * 70)
+            traceback.print_exc()
+            raise
 
     average = total_score // scanned if scanned else 0
 
