@@ -35,8 +35,7 @@ def write_sarif(findings, output_file):
                         "name": "Darkelf SecureAudit",
                         "version": "1.0.0",
                         "informationUri": (
-                            "https://github.com/Darkelf2024/"
-                            "darkelf_secureaudit"
+                            "https://github.com/Darkelf2024/darkelf_secureaudit"
                         ),
                         "rules": [],
                     }
@@ -51,7 +50,6 @@ def write_sarif(findings, output_file):
 
     for severity in ("HIGH", "MEDIUM", "INFO", "GOOD"):
         for line, message, _ in findings.get(severity, []):
-
             rule_id = get_rule_id(message)
 
             if rule_id not in rules:

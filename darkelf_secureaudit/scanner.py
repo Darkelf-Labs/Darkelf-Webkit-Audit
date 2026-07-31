@@ -144,7 +144,7 @@ def scan(lines):
 
         if "loadHTMLString_" in line:
             window = "\n".join(
-                lines[max(0, line_number - 41): min(len(lines), line_number + 5)]
+                lines[max(0, line_number - 41) : min(len(lines), line_number + 5)]
             )
 
             if any(token in window for token in UNTRUSTED):
@@ -263,6 +263,7 @@ def scan(lines):
         )
 
     return max(score, 0), findings
+
 
 def scan_project(path):
     """
