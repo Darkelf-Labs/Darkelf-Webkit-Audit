@@ -6,6 +6,7 @@ Main scanning engine for Darkelf SecureAudit.
 import re
 import traceback
 from pathlib import Path
+
 from .ast_scanner import ast_scan
 from .rules import (
     DELEGATE_SELECTORS,
