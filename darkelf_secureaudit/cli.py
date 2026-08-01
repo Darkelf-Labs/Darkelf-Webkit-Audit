@@ -27,6 +27,12 @@ def build_parser():
     )
 
     parser.add_argument(
+        "--version",
+        action="version",
+        version="Darkelf SecureAudit 5.0.0",
+    )
+
+    parser.add_argument(
         "target",
         help="Python file or project directory to scan.",
     )
