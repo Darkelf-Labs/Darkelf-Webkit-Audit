@@ -159,21 +159,20 @@ def scan(lines):
         # evaluateJavaScript()
         #
 
-        if "evaluateJavaScript_" in line:
-            # Only flag the regex path when a variable already known to be
-            # tainted reaches evaluateJavaScript_. AST analysis below handles
-            # structured Python expressions more accurately. String
-            # concatenation, formatting and f-strings are not vulnerabilities
-            # by themselves.
-            if any(
-                re.search(rf"\\b{re.escape(variable)}\\b", line)
-                for variable in tainted
-            ):
-                add(
-                    "HIGH",
-                    line_number,
-                    "evaluateJavaScript() uses tainted input",
-                )
+        # Only flag the regex path when a variable already known to be
+        # tainted reaches evaluateJavaScript_. AST analysis below handles
+        # structured Python expressions more accurately. String
+        # concatenation, formatting and f-strings are not vulnerabilities
+        # by themselves.
+        if "evaluateJavaScript_" in line and any(
+            re.search(rf"\\b{re.escape(variable)}\\b", line)
+            for variable in tainted
+        ):
+            add(
+                "HIGH",
+                line_number,
+                "evaluateJavaScript() uses tainted input",
+            )
 
         #
         # Additional detections
