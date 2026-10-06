@@ -278,6 +278,10 @@ def scan_project(path):
             "files": int,
             "findings": {...}
         }
+
+    Project-level findings include the source filename:
+
+        (line, message, confidence, file_path)
     """
 
     findings = empty_findings()
@@ -287,7 +291,17 @@ def scan_project(path):
 
     path = Path(path)
 
-    files = [path] if path.is_file() else discover_python_files(path)
+    #
+    # Preserve the scan target so findings can be mapped back to
+    # repository-relative source files for SARIF / GitHub Code Scanning.
+    #
+
+    if path.is_file():
+        files = [path]
+        project_root = path.parent
+    else:
+        files = discover_python_files(path)
+        project_root = path.parent
 
     for file in files:
         try:
@@ -299,8 +313,37 @@ def scan_project(path):
             total_score += score
             scanned += 1
 
+            #
+            # Convert the source path to a POSIX repository-relative path.
+            #
+            # Example:
+            #
+            #   darkelf_cocoa/application.py
+            #
+            # rather than:
+            #
+            #   /home/runner/work/.../darkelf_cocoa/application.py
+            #
+
+            try:
+                relative_file = file.relative_to(project_root).as_posix()
+            except ValueError:
+                relative_file = file.as_posix()
+
+            #
+            # Attach the actual source filename to every project finding.
+            #
+
             for severity in findings:
-                findings[severity].extend(file_findings[severity])
+                for line, message, finding_confidence in file_findings[severity]:
+                    findings[severity].append(
+                        (
+                            line,
+                            message,
+                            finding_confidence,
+                            relative_file,
+                        )
+                    )
 
         except Exception:
             print("\n" + "=" * 70)
