@@ -75,10 +75,19 @@ def print_console_report(results):
 
         print(f"[{severity}]")
 
-    for finding in entries:
-        line, message, confidence = finding[:3]
-        print(f"  Line {line:>5} | Confidence: {confidence:<6} | {message}")
+        for finding in entries:
 
+            line, message, confidence = finding[:3]
+
+            print(
+
+                f"  Line {line:>5} | "
+
+                f"Confidence: {confidence:<6} | "
+
+                f"{message}"
+
+            )
 
 def main():
     """
