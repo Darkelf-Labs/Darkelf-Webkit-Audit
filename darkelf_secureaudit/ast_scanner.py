@@ -126,16 +126,15 @@ class WebKitVisitor(ast.NodeVisitor):
         # loadHTMLString_
         #
 
-        elif method == "loadHTMLString_":
-            if node.args:
-                arg = node.args[0]
+        elif method == "loadHTMLString_" and node.args:
+            arg = node.args[0]
 
-                if isinstance(arg, ast.Name) and arg.id in self.tainted:
-                    self.add(
-                        node,
-                        "HIGH",
-                        "loadHTMLString() uses tainted HTML",
-                    )
+            if isinstance(arg, ast.Name) and arg.id in self.tainted:
+                self.add(
+                    node,
+                    "HIGH",
+                    "loadHTMLString() uses tainted HTML",
+                )
 
         self.generic_visit(node)
 
