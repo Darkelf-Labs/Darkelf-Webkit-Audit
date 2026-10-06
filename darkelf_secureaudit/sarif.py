@@ -21,6 +21,14 @@ def write_sarif(findings, output_file):
     findings : dict
         Aggregated findings dictionary.
 
+        Project-level findings are expected in the form:
+
+            (line, message, confidence, file_path)
+
+        Older three-item findings are also accepted for compatibility:
+
+            (line, message, confidence)
+
     output_file : str | Path
         Destination SARIF filename.
     """
@@ -35,7 +43,8 @@ def write_sarif(findings, output_file):
                         "name": "Darkelf SecureAudit",
                         "version": "1.0.0",
                         "informationUri": (
-                            "https://github.com/Darkelf2024/darkelf_secureaudit"
+                            "https://github.com/Darkelf-Labs/"
+                            "Darkelf-Webkit-Audit"
                         ),
                         "rules": [],
                     }
@@ -49,7 +58,21 @@ def write_sarif(findings, output_file):
     sarif_results = []
 
     for severity in ("HIGH", "MEDIUM", "INFO", "GOOD"):
-        for line, message, _ in findings.get(severity, []):
+        for finding in findings.get(severity, []):
+            #
+            # New project-level format:
+            #
+            #   line, message, confidence, file_path
+            #
+            # Retain compatibility with older three-field findings.
+            #
+
+            if len(finding) >= 4:
+                line, message, _, file_path = finding[:4]
+            else:
+                line, message, _ = finding
+                file_path = None
+
             rule_id = get_rule_id(message)
 
             if rule_id not in rules:
@@ -61,30 +84,46 @@ def write_sarif(findings, output_file):
                     },
                 }
 
-            sarif_results.append(
-                {
-                    "ruleId": rule_id,
-                    "level": SARIF_LEVELS[severity],
-                    "message": {
-                        "text": message,
-                    },
-                    "locations": [
-                        {
-                            "physicalLocation": {
-                                "artifactLocation": {
-                                    "uri": "project",
-                                },
-                                "region": {
-                                    "startLine": max(line, 1),
-                                },
-                            }
+            result = {
+                "ruleId": rule_id,
+                "level": SARIF_LEVELS[severity],
+                "message": {
+                    "text": message,
+                },
+            }
+
+            #
+            # Only provide a physical source location when the scanner
+            # actually knows which source file generated the finding.
+            #
+            # This prevents GitHub from attempting to fingerprint a
+            # non-existent placeholder such as "project".
+            #
+
+            if file_path:
+                result["locations"] = [
+                    {
+                        "physicalLocation": {
+                            "artifactLocation": {
+                                "uri": str(file_path).replace("\\", "/"),
+                                "uriBaseId": "%SRCROOT%",
+                            },
+                            "region": {
+                                "startLine": max(int(line), 1),
+                            },
                         }
-                    ],
-                }
-            )
+                    }
+                ]
+
+            sarif_results.append(result)
 
     sarif["runs"][0]["tool"]["driver"]["rules"] = list(rules.values())
     sarif["runs"][0]["results"] = sarif_results
 
     with open(output_file, "w", encoding="utf-8") as f:
-        json.dump(sarif, f, indent=2)
+        json.dump(
+            sarif,
+            f,
+            indent=2,
+            ensure_ascii=False,
+        )
