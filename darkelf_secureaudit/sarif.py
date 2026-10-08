@@ -1,15 +1,16 @@
+
 """
 sarif.py
 
 SARIF 2.1.0 report generation for Darkelf SecureAudit.
+
+GitHub Code Scanning should receive actionable security findings,
+not informational inventory or positive security detections.
 """
 
 import json
 
-from .rules import (
-    SARIF_LEVELS,
-    get_rule_id,
-)
+from .rules import SARIF_LEVELS, get_rule_id
 
 
 def write_sarif(findings, output_file):
@@ -21,21 +22,32 @@ def write_sarif(findings, output_file):
     findings : dict
         Aggregated findings dictionary.
 
-        Project-level findings are expected in the form:
+        Project-level findings are expected as:
 
             (line, message, confidence, file_path)
 
-        Older three-item findings are also accepted for compatibility:
-
-            (line, message, confidence)
+        Older three-item findings are accepted for compatibility,
+        but cannot be emitted without a source filename.
 
     output_file : str | Path
         Destination SARIF filename.
+
+    Notes
+    -----
+    Only HIGH and MEDIUM findings are exported.
+
+    GOOD and INFO findings remain available in console/JSON
+    reports but are excluded from GitHub Code Scanning.
+
+    Synthetic findings with invalid line numbers or missing
+    source filenames are also excluded.
     """
 
     sarif = {
         "version": "2.1.0",
-        "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+        "$schema": (
+            "https://json.schemastore.org/sarif-2.1.0.json"
+        ),
         "runs": [
             {
                 "tool": {
@@ -57,21 +69,21 @@ def write_sarif(findings, output_file):
     rules = {}
     sarif_results = []
 
-    for severity in ("HIGH", "MEDIUM", "INFO", "GOOD"):
+    # Only actionable findings belong in Code Scanning.
+    # Positive/informational findings are console inventory.
+    for severity in ("HIGH", "MEDIUM"):
         for finding in findings.get(severity, []):
-            #
-            # New project-level format:
-            #
-            #   line, message, confidence, file_path
-            #
-            # Retain compatibility with older three-field findings.
-            #
 
             if len(finding) >= 4:
                 line, message, _, file_path = finding[:4]
             else:
                 line, message, _ = finding
                 file_path = None
+
+            # Never fabricate a source location.
+            # Synthetic line 0 must not become line 1.
+            if not file_path or int(line) < 1:
+                continue
 
             rule_id = get_rule_id(message)
 
@@ -90,34 +102,29 @@ def write_sarif(findings, output_file):
                 "message": {
                     "text": message,
                 },
-            }
-
-            #
-            # Only provide a physical source location when the scanner
-            # actually knows which source file generated the finding.
-            #
-            # This prevents GitHub from attempting to fingerprint a
-            # non-existent placeholder such as "project".
-            #
-
-            if file_path:
-                result["locations"] = [
+                "locations": [
                     {
                         "physicalLocation": {
                             "artifactLocation": {
-                                "uri": str(file_path).replace("\\", "/"),
+                                "uri": str(file_path).replace(
+                                    "\\", "/"
+                                ),
                                 "uriBaseId": "%SRCROOT%",
                             },
                             "region": {
-                                "startLine": max(int(line), 1),
+                                "startLine": int(line),
                             },
                         }
                     }
-                ]
+                ],
+            }
 
             sarif_results.append(result)
 
-    sarif["runs"][0]["tool"]["driver"]["rules"] = list(rules.values())
+    sarif["runs"][0]["tool"]["driver"]["rules"] = list(
+        rules.values()
+    )
+
     sarif["runs"][0]["results"] = sarif_results
 
     with open(output_file, "w", encoding="utf-8") as f:
